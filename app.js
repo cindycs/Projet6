@@ -1,16 +1,17 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
-//const booksRoutes = require('.routes/book');
+const booksRoutes = require('./routes/books');
+const userRoutes = require('./routes/user');
 
 const app = express();
 
 
 mongoose.connect('mongodb+srv://cindycs:uLIspO4itC0z9Tdl@cluster0.9tgri.mongodb.net/')
-
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
+app.use(express.json());
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,8 +21,8 @@ app.use((req, res, next) => {
 })
 
 
-/*
 app.use('/api/books', booksRoutes );
-*/
+
+app.use('/api/auth', userRoutes);
 
 module.exports = app;
