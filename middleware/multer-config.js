@@ -7,12 +7,12 @@ const MINE_TYPES = {
 }
 
 const storage = multer.diskStorage({
-    destination: (res, file, callback) => {
-        callback(null, 'images')
+    destination: (req, file, callback) => {
+        callback(null, 'images');
     },
     filename: (req, file, callback) => {
         const name = file.originalname.split(' ').join('_');
-        const extension = MINE_TYPES[file.minetype];
+        const extension = MINE_TYPES[file.mimetype];
         callback(null, name + Date.now() + '.' + extension);
     }
 });
