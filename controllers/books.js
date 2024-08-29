@@ -1,8 +1,9 @@
 const Book = require('../models/Books');
 const fs = require('fs');  // Module pour manipuler le système de fichiers
+const sharp = require('sharp'); //Assure la compression d'image
 
 //Création d'un livre
-exports.createBook = (req, res, next) => {
+/*exports.createBook = (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
   delete bookObject._id;
   delete bookObject._userId;
@@ -14,7 +15,42 @@ exports.createBook = (req, res, next) => {
   book.save()
   .then(() => res.status(201).json ({message: 'Livre enregistré'}))
   .catch(error => res.status(400).json({ error }));
+}*/
+exports.createBook = (req, res, next) => {
+  const bookObject = JSON.parse(req.body.book);
+  delete bookObject._id;
+  delete bookObject._userId;
+
+  //Nom du fichier généré par multer
+  const filename = req.file.filename;
+  //Chemin d'accès au fichier téléchargé
+  const inputPath = `images/${filename}`;
+  //Chemin où le fichier compressé dsera enregistré
+  const outputPath = `images/compress_${filename}`;
+
+  //compression de l'image 
+  sharp.cache(false);
+  sharp(inputPath)
+    .resize(800)
+    .jpeg({ quality: 80})
+    .toFile(outputPath)
+    .then(() => {
+      fs.unlinkSync(inputPath);
+      const book = new Book({
+        ...bookObject,
+        userId: req.auth.userId,
+        imageUrl: `${req.protocol}://${req.get('host')}/${outputPath}`
+      });
+      book.save()
+      .then(() => res.status(201).json ({message: 'Livre enregistré'}))
+      .catch(error => res.status(400).json({ error }));
+    })
+    .catch(error => {
+      console.error('Erreur lors de la sauvegarde du livre:', error);
+      res.status(500).json({ error: 'Erreur lors de la compression de l\'image' })
+    });  
 }
+
 
 //Suppression d'un livre
 exports.deleteBook = (req, res, next) => {
@@ -64,8 +100,13 @@ exports.getAllBooks = (req, res, next) => {
 //Affichages des 3 livres les mieux notés 
 exports.getBestBooks = (req, res, next) => {
   Book.find()
-  .sort({ ratings: -1 })
-  .limit(3)
+  //.sort({ ratings: -1 })
+  //.limit(3)
   .then(book => res.status(200).json(book))
-  .catch(error => res.status(404).json({ error }))
+  .catch(error => {
+    console.log(error)
+    res.status(404).json({ error })
+    
+  }
+  )
 }
