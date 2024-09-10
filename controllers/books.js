@@ -92,6 +92,10 @@ exports.addBookRating = (req, res, next) => {
       // Ajoute une nouvelle note
       book.ratings.push({ userId, grade });
 
+      // Recalcule la note moyenne
+      const totalRatings = book.ratings.reduce((sum, rating) => sum + rating.grade, 0);
+      book.averageRating = totalRatings / book.ratings.length;
+
       // Sauvegarde les changements
      return book.save();
 
