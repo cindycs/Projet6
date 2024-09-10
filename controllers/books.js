@@ -3,19 +3,6 @@ const fs = require('fs');  // Module pour manipuler le système de fichiers
 const sharp = require('sharp'); //Assure la compression d'image
 
 //Création d'un livre
-/*exports.createBook = (req, res, next) => {
-  const bookObject = JSON.parse(req.body.book);
-  delete bookObject._id;
-  delete bookObject._userId;
-  const book = new Book({
-    ...bookObject,
-    userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-  });
-  book.save()
-  .then(() => res.status(201).json ({message: 'Livre enregistré'}))
-  .catch(error => res.status(400).json({ error }));
-}*/
 exports.createBook = (req, res, next) => {
   const bookObject = JSON.parse(req.body.book);
   delete bookObject._id;
@@ -83,6 +70,36 @@ exports.modifyBook = (req, res, next) => {
   .catch(error => res.status(400).json({ error }));
 }
 
+//Ajout d'une notation 
+exports.addBookRating = (req, res, next) => {
+  const bookId = req.params.id;  // L'ID du livre
+  const userId = req.body.userId;
+  const grade = req.body.rating;
+
+  Book.findOne({ _id: bookId })
+    .then(book => {
+      if (!book) {
+        return res.status(404).json({ message: 'Livre non trouvé.' });
+      }
+
+      // Cherche si l'utilisateur a déjà noté le livre
+      const userRating = book.ratings.find(rating => rating.userId === userId);
+
+      if (userRating) {
+        return res.status(400).json({ message: 'Vous avez déjà noté ce livre.' });
+      }
+
+      // Ajoute une nouvelle note
+      book.ratings.push({ userId, grade });
+
+      // Sauvegarde les changements
+     return book.save();
+
+    })
+    .then(savedBook  => res.status(200).json({ message: 'Note ajoutée.', id: savedBook._id }))
+    .catch(error => res.status(500).json({message: 'erreur lors de l\'ajout de la note', error }));
+};
+
 //Affichage d'un livre par rapport à son ID
 exports.getOneBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
@@ -100,8 +117,8 @@ exports.getAllBooks = (req, res, next) => {
 //Affichages des 3 livres les mieux notés 
 exports.getBestBooks = (req, res, next) => {
   Book.find()
-  //.sort({ ratings: -1 })
-  //.limit(3)
+  .sort({ ratings: -1 })
+  .limit(3)
   .then(book => res.status(200).json(book))
   .catch(error => {
     console.log(error)
