@@ -71,7 +71,7 @@ exports.modifyBook = (req, res, next) => {
 }
 
 //Ajout d'une notation 
-exports.addBookRating = (req, res, next) => {
+exports.addBookRating = (req, res) => {
   const bookId = req.params.id;  // L'ID du livre
   const userId = req.body.userId;
   const grade = req.body.rating;
@@ -95,13 +95,13 @@ exports.addBookRating = (req, res, next) => {
       // Recalcule la note moyenne
       const totalRatings = book.ratings.reduce((sum, rating) => sum + rating.grade, 0);
       book.averageRating = totalRatings / book.ratings.length;
-
       // Sauvegarde les changements
-     return book.save();
+     book.save();
+     return book;
 
     })
-    .then(savedBook  => res.status(200).json({ message: 'Note ajoutée.', id: savedBook._id }))
-    .catch(error => res.status(500).json({message: 'erreur lors de l\'ajout de la note', error }));
+    .then(book  => res.status(200).json(book))
+    .catch(error => res.status(500).json({message: 'Erreur lors de l\'ajout de la note.', error }));
 };
 
 //Affichage d'un livre par rapport à son ID
@@ -128,6 +128,5 @@ exports.getBestBooks = (req, res, next) => {
     console.log(error)
     res.status(404).json({ error })
     
-  }
-  )
+  })
 }

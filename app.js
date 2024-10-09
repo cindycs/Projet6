@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-
+require('dotenv').config();
 
 const booksRoutes = require('./routes/books');
 const userRoutes = require('./routes/user');
@@ -9,7 +9,7 @@ const userRoutes = require('./routes/user');
 const app = express();
 
 
-mongoose.connect('mongodb+srv://cindycs:uLIspO4itC0z9Tdl@cluster0.9tgri.mongodb.net/')
+mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
